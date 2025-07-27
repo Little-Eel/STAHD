@@ -1,1 +1,5 @@
-# STAHD
+# STAHD: a scalable and accurate method to detect spatial domains in high-resolution spatial transcriptomics data
+![图片1](https://github.com/user-attachments/assets/6fc87200-a4d5-44ce-b6db-b66687adec7f)
+
+- Motivation: Spatial transcriptomics (ST) enables the study of spatial heterogeneity in tissues. However, current methods struggle with large-scale, high-resolution data, leading to reduced efficiency and accuracy in detecting spatial domains. A scalable, precise solution is urgently needed.
+- Results: We present STAHD, a scalable and efficient framework for spatial domain detection in ST data. Combining a graph attention autoencoder with multilevel k-way graph partitioning, STAHD decomposes large graphs into compact subgraphs and generates low-dimensional embeddings. This improves computational efficiency and clustering accuracy. Benchmarks on human and mouse datasets show STAHD outperforms existing methods and accurately reveals spatially distinct tumor microenvironments and functional regions.
