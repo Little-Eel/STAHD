@@ -66,45 +66,7 @@ def train_STAHD(adata, hidden_dims=[512, 30], n_epochs=1000, lr=0.001, key_added
     edgeList = adata.uns['edgeList']
     data = Data(x=torch.FloatTensor(adata.X.todense()),
                 edge_index=torch.LongTensor(np.array([edgeList[0], edgeList[1]])))
-    # data = data.to(device)
 
-    # https://github.com/pyg-team/pytorch_geometric
-    # https://pytorch-geometric.readthedocs.io/en/latest/modules/loader.html#torch_geometric.loader.ClusterLoader
-    # batch_size = 256
-    cluster_data = ClusterData(data, num_parts=int(np.ceil(data.num_nodes / batch_size)) * 10,
-                               recursive=False, log=False)
-    #2.22###########################2.22
-    # # ============== 修正后的子图统计代码 ==============
-    # print("\n子图划分统计:")
-    #
-    # # 方法 1: 直接遍历 ClusterData 的子图（需确认是否支持索引访问）
-    # try:
-    #     # 检查 ClusterData 是否支持索引访问
-    #     first_subgraph = cluster_data[0]
-    #     subgraph_sizes = [cluster_data[i].num_nodes for i in range(len(cluster_data))]
-    #     print(f"子图数量: {len(subgraph_sizes)}")
-    #     for idx, size in enumerate(subgraph_sizes):
-    #         print(f"子图 {idx} 包含 {size} 个节点")
-    #     total_nodes = sum(subgraph_sizes)
-    #
-    # except TypeError:
-    #     # 方法 2: 通过 ClusterLoader 间接获取子图大小
-    #     print("警告: 当前 PyTorch Geometric 版本可能不支持直接索引访问 ClusterData，改用 ClusterLoader 统计:")
-    #     train_loader = ClusterLoader(cluster_data, batch_size=1, shuffle=False)  # batch_size=1 确保每个批次加载一个子图
-    #     subgraph_sizes = []
-    #     for batch in train_loader:
-    #         subgraph_sizes.append(batch.num_nodes)
-    #     for idx, size in enumerate(subgraph_sizes):
-    #         print(f"子图 {idx} 包含 {size} 个节点")
-    #     total_nodes = sum(subgraph_sizes)
-    #
-    # print(f"\n总节点数验证: {total_nodes} (原图节点数: {data.num_nodes})")
-    # # ================================================
-    # # ------------------------------------------------------------
-    #
-    #
-    #
-    #
     train_loader = ClusterLoader(cluster_data, batch_size=10, shuffle=True)
     subgraph_loader = NeighborLoader(data, num_neighbors=[-1], batch_size=batch_size,
                                      shuffle=False)
@@ -112,7 +74,7 @@ def train_STAHD(adata, hidden_dims=[512, 30], n_epochs=1000, lr=0.001, key_added
     model = STAHD(hidden_dims=[data.x.shape[1], hidden_dims[0], hidden_dims[1]]).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     if verbose:
-        print(model)###############2.23此处的内存为1064MiB
+        print(model)
 
     print('Pretrain with STAHD...')
     for epoch in tqdm(range(0, n_epochs)):
@@ -125,26 +87,22 @@ def train_STAHD(adata, hidden_dims=[512, 30], n_epochs=1000, lr=0.001, key_added
             loss = F.mse_loss(batch.x, out)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5.)
-            optimizer.step()#######################2.23此处内存为1752MiB
+            optimizer.step()
 
     with torch.no_grad():
         z_list = []
-        out_list = []#####################2.23此处内存为1750MiB
+        out_list = []
 
         #device_test = cpu
         device_test = torch.device('cpu')
         for batch in subgraph_loader:
-            batch.to(device_test)##########################################2022MiB
+            batch.to(device_test)
             model.to(device_test)
-            z, out = model(batch.x, batch.edge_index)##############内存为4740MiB
+            z, out = model(batch.x, batch.edge_index)
             z_list.append(z[:batch.batch_size].cpu())
-            out_list.append(out[:batch.batch_size].cpu())######################2.23内存为5265
+            out_list.append(out[:batch.batch_size].cpu())
 
-            # # 2.25加的###############################手动释放当前batch相关变量
-            # del z, out, batch
-            # torch.cuda.empty_cache()  # 清理GPU缓存（如果使用GPU）
-
-        # z, _ = model(data.x, data.edge_index)
+       
         z_all = torch.cat(z_list, dim=0)
         out_all = torch.cat(out_list, dim=0)
     adata.obsm['STAHD'] = z_all.numpy()
