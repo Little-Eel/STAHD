@@ -29,13 +29,13 @@ Install all the required packages.
 For Linux
 
 ```
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 For MacOS
 
 ```
-pip install -r requirement_for_macOS.txt
+pip install -r requirements_for_macOS.txt
 ```
 
 The use of the mclust algorithm requires the rpy2 package (Python) and the mclust package (R). See https://pypi.org/project/rpy2/ and https://cran.r-project.org/web/packages/mclust/index.html for detail.
