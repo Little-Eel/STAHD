@@ -66,7 +66,11 @@ def train_STAHD(adata, hidden_dims=[512, 30], n_epochs=1000, lr=0.001, key_added
     edgeList = adata.uns['edgeList']
     data = Data(x=torch.FloatTensor(adata.X.todense()),
                 edge_index=torch.LongTensor(np.array([edgeList[0], edgeList[1]])))
+    # data = data.to(device)
 
+
+    cluster_data = ClusterData(data, num_parts=int(np.ceil(data.num_nodes / batch_size)) * 10,
+                               recursive=False, log=False)
     train_loader = ClusterLoader(cluster_data, batch_size=10, shuffle=True)
     subgraph_loader = NeighborLoader(data, num_neighbors=[-1], batch_size=batch_size,
                                      shuffle=False)
@@ -102,7 +106,6 @@ def train_STAHD(adata, hidden_dims=[512, 30], n_epochs=1000, lr=0.001, key_added
             z_list.append(z[:batch.batch_size].cpu())
             out_list.append(out[:batch.batch_size].cpu())
 
-       
         z_all = torch.cat(z_list, dim=0)
         out_all = torch.cat(out_list, dim=0)
     adata.obsm['STAHD'] = z_all.numpy()
