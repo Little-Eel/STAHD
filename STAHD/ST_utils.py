@@ -508,7 +508,7 @@ def cluster_post_process(adata, key_added="refine_clustering", p=0.5, run_times=
     result_final = pd.DataFrame(np.zeros(clutser_result.shape[0]))
     i = 1
     while True:
-        clutser_result = refine_clusters(clutser_result, PP_adj, p)  # 每次把更新的label放进去
+        clutser_result = refine_clusters(clutser_result, PP_adj, p)  
         print("Refining clusters, run times: {}/{}".format(i, run_times))
         result_final.loc[:, i] = clutser_result
         if result_final.loc[:, i].equals(result_final.loc[:, i - 1]) or i == run_times:
@@ -524,11 +524,12 @@ import numpy as np
 import torch
 
 def set_seed(seed=42):
-    random.seed(seed)                           # Python 随机种子
-    os.environ['PYTHONHASHSEED'] = str(seed)    # Python哈希种子（影响字典等）
-    np.random.seed(seed)                        # NumPy 随机种子
-    torch.manual_seed(seed)                     # PyTorch CPU 随机种子
-    torch.cuda.manual_seed(seed)                # PyTorch GPU 随机种子
-    torch.cuda.manual_seed_all(seed)            # 如果你使用多卡
-    torch.backends.cudnn.deterministic = True   # 保证结果确定性
-    torch.backends.cudnn.benchmark = False      # 禁用 cuDNN 的自动优化
+    random.seed(seed)                           
+    os.environ['PYTHONHASHSEED'] = str(seed)    
+    np.random.seed(seed)                        
+    torch.manual_seed(seed)                     
+    torch.cuda.manual_seed(seed)               
+    torch.cuda.manual_seed_all(seed)            
+    torch.backends.cudnn.deterministic = True   
+
+    torch.backends.cudnn.benchmark = False      
